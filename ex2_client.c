@@ -20,7 +20,7 @@ void clientHandler();
 
 int main(int argc, char* argv[]) {
 
-    signal(2, clientHandler);
+    signal(SIGUSR2, clientHandler);
 
     if(argc!=5){
         printf("input error !\n");
@@ -33,13 +33,6 @@ int main(int argc, char* argv[]) {
     char buffer[256];
     sprintf(buffer, "%d", c_pid);
     unsigned int sleep_time;
-
-    int s_pid =     atoi(argv[1]);
-    int num1 =      atoi(argv[2]);
-    int operator = atoi(argv[3]);
-    int num2 =      atoi(argv[4]);
-
-
 
     for (i = 0; i < 10; i++) {
         toServerFd = open("toServer.txt", O_CREAT | O_RDWR, 0777);
@@ -55,29 +48,37 @@ int main(int argc, char* argv[]) {
         exit(-1);
     }
 
-    if(write(toServerFd, &buffer, sizeof(buffer))<0) {
+    if(write(toServerFd, buffer, strlen(buffer))<0) {
         printf("ERROR_FROM_EX2\n");
         exit(-1);
     }
-    if(write(toServerFd, &num1, sizeof(num1))< 0){
+
+    write(toServerFd, "\n", 1);
+
+    if(write(toServerFd, argv[2], strlen(argv[2]))< 0){
         printf("ERROR_FROM_EX2\n");
         exit(-1);
     }
-    if(write(toServerFd, &operator, sizeof(operator))<0){
+
+    write(toServerFd, "\n", 1);
+
+    if(write(toServerFd, argv[3], strlen(argv[3]))<0){
         printf("ERROR_FROM_EX2\n");
         exit(-1);
     }
-    if(write(toServerFd, &num2, sizeof(num2))<0){
+
+    write(toServerFd, "\n", 1);
+
+    if(write(toServerFd, argv[4], strlen(argv[4]))<0){
         printf("ERROR_FROM_EX2\n");
         exit(-1);
     }
+    write(toServerFd, "\n", 1);
     close(toServerFd);
 
-    kill(s_pid, 1);
+    kill(atoi(argv[1]), SIGUSR1);
     pause();
 }
-
-
 
 void clientHandler(){
     int toClientfd;
@@ -100,7 +101,9 @@ void clientHandler(){
     read(toClientfd, &result, sizeof(result));
     printf("result: %d" , atoi(result));
     close(toClientfd);
-
-
-
+    remove(clientPath);
+    remove("toServer.txt");
 }
+
+
+
